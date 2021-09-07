@@ -1,0 +1,79 @@
+#! /bin/bash
+branch=`git branch -a| grep $1 | wc -l`
+branche=`git branch -a| grep $1`
+index=0
+emptyloop=false
+fetched=false
+if [ ! "$branch" -eq 0 ];
+then
+        echo 'Possibilities to choose:'
+fi
+while read line; do
+        if [ -z "$line" ];
+        then
+                emptyloop=true
+                break;
+        fi
+        echo $((++index))')' ${line##*origin/}
+        arr+=([$index]=${line##*origin/})
+done <<< "$branche"
+if [ "$emptyloop" == "false" ];
+then
+        echo $((++index))') Fetch more branches.'
+        echo Choose your destiny!
+read number
+
+if [ ! -z "${arr[number]}" ];
+then
+checkout=`git checkout ${arr[number]}`
+anotherloop=false
+else
+        if [ $number == $((${#arr[@]}+1)) ];
+        then
+anotherloop=true
+        else
+anotherloop=false
+        echo There is not such choice!
+        fi
+fi
+
+
+fi
+if [[ "$emptyloop" == "true" || "$anotherloop" == "true" ]];
+then
+emptyloop=false
+fetched=true
+`git fetch`
+if [ ! "$branch" -eq 0 ];
+then
+        echo 'Fetched possibilities to choose:'
+fi
+
+while read line; do
+        if [ -z "$line" ];
+        then
+                emptyloop=true
+                break
+        fi
+        echo $((++index))')' ${line##*origin/}
+        arr+=([$index]=${line##*origin/})
+done <<< "$branche"
+
+fi
+if [ "$emptyloop" == "true" ];
+then
+        echo There is no branch with that phrase.
+elif [ "$fetched" == "true" ];
+then
+echo Choose your destiny!
+read number
+
+if [ ! -z "${arr[number]}" ];
+then
+checkout=`git checkout ${arr[number]}`
+else
+        echo There is not such choice!
+
+fi
+
+fi
